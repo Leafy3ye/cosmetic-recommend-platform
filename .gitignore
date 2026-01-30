@@ -1,0 +1,32 @@
+# 后端
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# 日志
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.env.local
+.env.*.local

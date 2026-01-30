@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: cosmetic-recommend-platform
+  
+  # 自动配置排除（Redis暂时禁用）
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/cosmetic_platform?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: root
+    password: Yexiajia0422.
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # Redis配置（已禁用，后续需要时再启用）
+  # redis:
+  #   host: 127.0.0.1
+  #   port: 6379
+  #   timeout: 2000ms
+  #   jedis:
+  #     pool:
+  #       max-active: 8
+  #       max-wait: -1ms
+  #       max-idle: 8
+  #       min-idle: 0
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# MyBatis-Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# JWT配置
+jwt:
+  secret: cosmetic-recommend-platform-secret-key-2026
+  expiration: 86400000  # 24小时（毫秒）
+  header: Authorization
+  prefix: Bearer 
+
+# 日志配置
+logging:
+  level:
+    com.cosmetic: debug
+    org.springframework: info
+

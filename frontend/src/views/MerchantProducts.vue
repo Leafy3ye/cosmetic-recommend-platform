@@ -1,0 +1,255 @@
+<template>
+  <div class="merchant-products-page">
+    <div class="page-header">
+      <h2>商品管理</h2>
+      <el-button type="primary" @click="handleAdd">
+        <el-icon><Plus /></el-icon>
+        添加商品
+      </el-button>
+    </div>
+
+    <el-card class="filter-card">
+      <el-form :inline="true" :model="queryParams">
+        <el-form-item label="商品状态">
+          <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 150px">
+            <el-option label="上架" :value="1" />
+            <el-option label="下架" :value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关键词">
+          <el-input
+            v-model="queryParams.keyword"
+            placeholder="搜索商品名称、品牌"
+            clearable
+            style="width: 200px"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <el-card class="table-card">
+      <el-table
+        v-loading="loading"
+        :data="productList"
+        border
+        style="width: 100%"
+      >
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column label="商品图片" width="100">
+          <template #default="{ row }">
+            <el-image
+              :src="row.image"
+              fit="cover"
+              style="width: 60px; height: 60px; border-radius: 4px"
+              :preview-src-list="[row.image]"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" label="商品名称" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="brand" label="品牌" width="120" />
+        <el-table-column prop="price" label="价格" width="100">
+          <template #default="{ row }">
+            ¥{{ row.price }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="stock" label="库存" width="100" />
+        <el-table-column prop="sales" label="销量" width="100" />
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'info'">
+              {{ row.status === 1 ? '上架' : '下架' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="250" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              type="primary"
+              size="small"
+              link
+              @click="handleEdit(row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              :type="row.status === 1 ? 'warning' : 'success'"
+              size="small"
+              link
+              @click="handleToggleStatus(row)"
+            >
+              {{ row.status === 1 ? '下架' : '上架' }}
+            </el-button>
+            <el-button
+              type="danger"
+              size="small"
+              link
+              @click="handleDelete(row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-model:current-page="queryParams.current"
+        v-model:page-size="queryParams.size"
+        :total="total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleQuery"
+        @current-change="handleQuery"
+        style="margin-top: 20px; justify-content: flex-end"
+      />
+    </el-card>
+
+    <!-- 商品编辑表单弹窗 -->
+    <ProductForm
+      v-model:visible="formVisible"
+      :product="currentProduct"
+      :merchant-id="userInfo?.userId"
+      @success="handleQuery"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useUserStore } from '@/stores/user'
+import { getMerchantProductPage, deleteProduct, updateProductStatus } from '@/api/product'
+import ProductForm from '@/components/ProductForm.vue'
+
+const userStore = useUserStore()
+const userInfo = computed(() => userStore.userInfo)
+
+const loading = ref(false)
+const productList = ref([])
+const total = ref(0)
+const formVisible = ref(false)
+const currentProduct = ref(null)
+
+const queryParams = reactive({
+  merchantId: userInfo.value?.userId,
+  current: 1,
+  size: 10,
+  keyword: '',
+  status: null
+})
+
+const handleQuery = async () => {
+  try {
+    loading.value = true
+    const params = {
+      ...queryParams,
+      merchantId: userInfo.value?.userId
+    }
+    const res = await getMerchantProductPage(params)
+    productList.value = res.data.records
+    total.value = res.data.total
+  } catch (error) {
+    ElMessage.error(error.message || '获取商品列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleReset = () => {
+  queryParams.keyword = ''
+  queryParams.status = null
+  queryParams.current = 1
+  handleQuery()
+}
+
+const handleAdd = () => {
+  currentProduct.value = null
+  formVisible.value = true
+}
+
+const handleEdit = (row) => {
+  currentProduct.value = { ...row }
+  formVisible.value = true
+}
+
+const handleToggleStatus = async (row) => {
+  const newStatus = row.status === 1 ? 0 : 1
+  const statusText = newStatus === 1 ? '上架' : '下架'
+  
+  try {
+    await ElMessageBox.confirm(`确定要${statusText}该商品吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await updateProductStatus(row.id, newStatus)
+    ElMessage.success(`${statusText}成功`)
+    handleQuery()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || `${statusText}失败`)
+    }
+  }
+}
+
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该商品吗？删除后无法恢复！', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'error'
+    })
+    
+    await deleteProduct(row.id)
+    ElMessage.success('删除成功')
+    handleQuery()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '删除失败')
+    }
+  }
+}
+
+onMounted(() => {
+  if (!userInfo.value || userInfo.value.role !== 1) {
+    ElMessage.error('您没有权限访问该页面')
+    return
+  }
+  handleQuery()
+})
+</script>
+
+<style scoped>
+.merchant-products-page {
+  padding: 20px;
+  min-height: calc(100vh - 120px);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
+.filter-card {
+  margin-bottom: 20px;
+}
+
+.table-card {
+  margin-bottom: 20px;
+}
+
+:deep(.el-pagination) {
+  display: flex;
+}
+</style>

@@ -1,0 +1,177 @@
+/* Element Plus 主题色自定义 - 粉色美妆风格 */
+:root {
+  /* 主色调 - 粉色系 */
+  --el-color-primary: #FF9A9E;
+  --el-color-primary-light-3: #FFB4B7;
+  --el-color-primary-light-5: #FFC9CC;
+  --el-color-primary-light-7: #FFDDDF;
+  --el-color-primary-light-8: #FFE8EA;
+  --el-color-primary-light-9: #FFF3F4;
+  --el-color-primary-dark-2: #E67B7F;
+  
+  /* 成功色 - 保持绿色，但可以用在特定场景 */
+  --el-color-success: #67C23A;
+  
+  /* 警告色 - 改为粉橙色（统一粉色系） */
+  --el-color-warning: #FF9A9E;
+  --el-color-warning-light-3: #FFB4B7;
+  --el-color-warning-light-5: #FFC9CC;
+  --el-color-warning-light-7: #FFDDDF;
+  --el-color-warning-light-8: #FFE8EA;
+  --el-color-warning-light-9: #FFF3F4;
+  
+  /* 危险色 - 改为深粉色（统一粉色系） */
+  --el-color-danger: #FF9A9E;
+  --el-color-danger-light-3: #FFB4B7;
+  --el-color-danger-light-5: #FFC9CC;
+  --el-color-danger-light-7: #FFDDDF;
+  --el-color-danger-light-8: #FFE8EA;
+  --el-color-danger-light-9: #FFF3F4;
+  
+  /* 信息色 - 改为浅粉色 */
+  --el-color-info: #FFD4E0;
+  
+  /* 其他组件色 */
+  --el-menu-hover-bg-color: #FFF3F4;
+  --el-menu-active-color: #FF9A9E;
+  
+  /* 标签页 */
+  --el-tabs-header-height: 50px;
+}
+
+/* Element Plus 按钮渐变效果 */
+.el-button--primary {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border: none;
+}
+
+.el-button--primary:hover {
+  background: linear-gradient(135deg, #FF7B7F 0%, #FFB8D8 100%);
+  border: none;
+}
+
+.el-button--primary:active {
+  background: linear-gradient(135deg, #E67B7F 0%, #FFA8C8 100%);
+  border: none;
+}
+
+/* Warning按钮 - 统一粉色系 */
+.el-button--warning {
+  background: linear-gradient(135deg, #FFA8B4 0%, #FFD4E0 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--warning:hover {
+  background: linear-gradient(135deg, #FF8FA0 0%, #FFC0D0 100%);
+  border: none;
+}
+
+.el-button--warning:active {
+  background: linear-gradient(135deg, #FF7690 0%, #FFACC0 100%);
+  border: none;
+}
+
+/* Danger按钮 - 统一粉色系 */
+.el-button--danger {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border: none;
+  color: white;
+}
+
+.el-button--danger:hover {
+  background: linear-gradient(135deg, #FF7B7F 0%, #FFB8D8 100%);
+  border: none;
+}
+
+.el-button--danger:active {
+  background: linear-gradient(135deg, #E67B7F 0%, #FFA8C8 100%);
+  border: none;
+}
+
+/* 标签页激活状态 */
+.el-tabs__active-bar {
+  background: linear-gradient(90deg, #FF9A9E, #FECFEF);
+}
+
+.el-tabs__item.is-active {
+  color: #FF9A9E;
+}
+
+.el-tabs__item:hover {
+  color: #FF9A9E;
+}
+
+/* 徽章 */
+.el-badge__content {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border: none;
+}
+
+/* 下拉菜单激活项 */
+.el-dropdown-menu__item:not(.is-disabled):hover {
+  background-color: #FFF3F4;
+  color: #FF9A9E;
+}
+
+/* 复选框和单选框 */
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background-color: #FF9A9E;
+  border-color: #FF9A9E;
+}
+
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: #FF9A9E;
+  border-color: #FF9A9E;
+}
+
+/* 开关 */
+.el-switch.is-checked .el-switch__core {
+  background-color: #FF9A9E;
+}
+
+/* 滑块 */
+.el-slider__button {
+  border-color: #FF9A9E;
+}
+
+.el-slider__bar {
+  background-color: #FF9A9E;
+}
+
+/* 分页 */
+.el-pagination.is-background .el-pager li:not(.disabled).is-active {
+  background-color: #FF9A9E;
+}
+
+.el-pagination.is-background .el-pager li:not(.disabled):hover {
+  color: #FF9A9E;
+}
+
+/* 加载中 */
+.el-loading-spinner .path {
+  stroke: #FF9A9E;
+}
+
+/* 进度条 */
+.el-progress-bar__inner {
+  background: linear-gradient(90deg, #FF9A9E, #FECFEF);
+}
+
+/* 输入框聚焦 */
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #FF9A9E inset;
+}
+
+.el-textarea__inner:focus {
+  border-color: #FF9A9E;
+}
+
+/* 选择器下拉 */
+.el-select-dropdown__item.selected {
+  color: #FF9A9E;
+}
+
+.el-select-dropdown__item:hover {
+  background-color: #FFF3F4;
+}
