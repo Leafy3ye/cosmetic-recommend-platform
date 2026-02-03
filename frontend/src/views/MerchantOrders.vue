@@ -1,6 +1,9 @@
 <template>
-  <div class="merchant-orders-page">
-    <div class="page-header">
+  <div class="merchant-orders-container">
+    <AppHeader />
+    
+    <div class="merchant-orders-page">
+      <div class="page-header">
       <h2>订单管理</h2>
     </div>
 
@@ -121,6 +124,9 @@
         <el-button @click="detailVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+    </div>
+    
+    <AppFooter />
   </div>
 </template>
 
@@ -129,6 +135,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getMerchantOrderPage, deliverOrder } from '@/api/order'
+import AppHeader from '@/components/AppHeader.vue'
+import AppFooter from '@/components/AppFooter.vue'
 
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
@@ -226,40 +234,192 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.merchant-orders-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
 .merchant-orders-page {
-  padding: 20px;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 80px;
   min-height: calc(100vh - 120px);
+  flex: 1;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .page-header h2 {
   margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .filter-card {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.filter-card :deep(.el-card__body) {
+  padding: 24px;
+}
+
+.filter-card :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+.filter-card :deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #555;
+}
+
+.filter-card :deep(.el-button--primary) {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+}
+
+.filter-card :deep(.el-button--primary:hover) {
+  background: linear-gradient(135deg, #FF7B7F 0%, #FFB8D8 100%);
+  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.3);
 }
 
 .table-card {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.table-card :deep(.el-card__body) {
+  padding: 24px;
+}
+
+.table-card :deep(.el-table) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-card :deep(.el-table th) {
+  background: #fafafa;
+  color: #333;
+  font-weight: 600;
+}
+
+.table-card :deep(.el-table td),
+.table-card :deep(.el-table th) {
+  padding: 16px 0;
+}
+
+.table-card :deep(.el-button.is-link) {
+  font-weight: 500;
 }
 
 .price {
-  color: #f56c6c;
-  font-weight: bold;
+  color: #ff4d4f;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .order-detail {
-  padding: 20px;
+  padding: 10px 0;
+}
+
+.order-detail :deep(.el-descriptions__label) {
+  font-weight: 500;
+  color: #555;
+}
+
+.order-detail :deep(.el-descriptions__content) {
+  color: #333;
 }
 
 :deep(.el-pagination) {
   display: flex;
+  gap: 8px;
+}
+
+:deep(.el-pager li) {
+  border-radius: 6px;
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+}
+
+:deep(.el-pager li.is-active) {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  color: white;
+}
+
+:deep(.el-pagination button) {
+  border-radius: 6px;
+}
+
+/* 标签样式 */
+:deep(.el-tag) {
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 500;
+  border: none;
+}
+
+/* 对话框样式优化 */
+:deep(.el-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:deep(.el-dialog__header) {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  padding: 20px;
+}
+
+:deep(.el-dialog__title) {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: white;
+  font-size: 20px;
+}
+
+:deep(.el-dialog__headerbtn:hover .el-dialog__close) {
+  color: white;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 20px;
+  background: #fafafa;
+}
+
+/* 响应式 */
+@media (max-width: 1400px) {
+  .merchant-orders-page {
+    padding: 30px 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .merchant-orders-page {
+    padding: 20px;
+  }
+  
+  .page-header h2 {
+    font-size: 24px;
+  }
 }
 </style>

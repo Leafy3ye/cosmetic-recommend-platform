@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.cosmetic.entity.Cart;
 import com.cosmetic.mapper.CartMapper;
 import com.cosmetic.service.CartService;
+import com.cosmetic.vo.CartVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +69,11 @@ public class CartServiceImpl implements CartService {
         wrapper.eq(Cart::getUserId, userId);
         wrapper.orderByDesc(Cart::getCreateTime);
         return cartMapper.selectList(wrapper);
+    }
+
+    @Override
+    public List<CartVO> getCartListWithProduct(Long userId) {
+        return cartMapper.getCartListWithProduct(userId);
     }
 
     @Override

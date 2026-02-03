@@ -45,6 +45,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/address',
+    name: 'AddressManagement',
+    component: () => import('@/views/AddressManagement.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/merchant/products',
     name: 'MerchantProducts',
     component: () => import('@/views/MerchantProducts.vue'),

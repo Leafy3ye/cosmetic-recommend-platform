@@ -6,8 +6,8 @@
       <span>账号</span>
     </div>
 
-    <!-- 购物袋 -->
-    <div class="tool-item cart-item" @click="handleCart">
+    <!-- 购物袋 (商家隐藏) -->
+    <div v-if="!isMerchant" class="tool-item cart-item" @click="handleCart">
       <el-badge :value="cartCount" :hidden="cartCount === 0" :max="99">
         <el-icon><ShoppingBag /></el-icon>
       </el-badge>
@@ -20,10 +20,14 @@
       <span>签到</span>
     </div>
 
-    <!-- 收藏 -->
-    <div class="tool-item" @click="handleFavorite">
+    <!-- 收藏/客户 -->
+    <div v-if="!isMerchant" class="tool-item" @click="handleFavorite">
       <el-icon><Star /></el-icon>
       <span>收藏</span>
+    </div>
+    <div v-else class="tool-item" @click="handleCustomers">
+      <el-icon><User /></el-icon>
+      <span>客户</span>
     </div>
 
     <!-- 历史 -->
@@ -53,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   User, ShoppingBag, Calendar, Star, Clock, 
@@ -67,6 +71,9 @@ const userStore = useUserStore()
 
 const cartCount = ref(0)
 const showBackTop = ref(false)
+
+// 判断是否为商家
+const isMerchant = computed(() => userStore.userInfo?.role === 1)
 
 // 监听滚动显示回到顶部按钮
 const handleScroll = () => {
@@ -132,6 +139,10 @@ const handleCustomerService = () => {
 
 const handleFeedback = () => {
   ElMessage.info('反馈功能开发中')
+}
+
+const handleCustomers = () => {
+  ElMessage.info('客户对话功能开发中，敬请期待')
 }
 
 const scrollToTop = () => {

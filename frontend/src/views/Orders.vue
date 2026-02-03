@@ -1,65 +1,71 @@
 <template>
-  <div class="orders-page">
-    <h2>我的订单</h2>
+  <div class="orders-container">
+    <AppHeader />
     
-    <el-tabs v-model="activeTab" @tab-click="handleTabClick">
-      <el-tab-pane label="全部" name="all" />
-      <el-tab-pane label="待付款" name="0" />
-      <el-tab-pane label="待发货" name="1" />
-      <el-tab-pane label="待收货" name="2" />
-      <el-tab-pane label="待评价" name="3" />
-      <el-tab-pane label="已完成" name="4" />
-    </el-tabs>
-    
-    <div class="orders-list" v-loading="loading">
-      <el-empty v-if="!loading && orderList.length === 0" description="暂无订单" />
+    <div class="orders-page">
+      <h2>我的订单</h2>
       
-      <div v-else>
-        <div class="order-item" v-for="order in orderList" :key="order.id">
-          <div class="order-header">
-            <span>订单号：{{ order.orderNo }}</span>
-            <span>{{ formatTime(order.createTime) }}</span>
-            <el-tag :type="getStatusType(order.status)">{{ getStatusText(order.status) }}</el-tag>
-          </div>
-          
-          <div class="order-body">
-            <div class="order-info">
-              <p>收货人：{{ order.receiverName }}</p>
-              <p>电话：{{ order.receiverPhone }}</p>
-              <p>地址：{{ order.receiverAddress }}</p>
+      <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+        <el-tab-pane label="全部" name="all" />
+        <el-tab-pane label="待付款" name="0" />
+        <el-tab-pane label="待发货" name="1" />
+        <el-tab-pane label="待收货" name="2" />
+        <el-tab-pane label="待评价" name="3" />
+        <el-tab-pane label="已完成" name="4" />
+      </el-tabs>
+      
+      <div class="orders-list" v-loading="loading">
+        <el-empty v-if="!loading && orderList.length === 0" description="暂无订单" />
+        
+        <div v-else>
+          <div class="order-item" v-for="order in orderList" :key="order.id">
+            <div class="order-header">
+              <span>订单号：{{ order.orderNo }}</span>
+              <span>{{ formatTime(order.createTime) }}</span>
+              <el-tag :type="getStatusType(order.status)">{{ getStatusText(order.status) }}</el-tag>
             </div>
             
-            <div class="order-amount">
-              <div>订单总额：<span class="price">¥{{ order.totalAmount }}</span></div>
-              <div>实付金额：<span class="price">¥{{ order.payAmount }}</span></div>
+            <div class="order-body">
+              <div class="order-info">
+                <p>收货人：{{ order.receiverName }}</p>
+                <p>电话：{{ order.receiverPhone }}</p>
+                <p>地址：{{ order.receiverAddress }}</p>
+              </div>
+              
+              <div class="order-amount">
+                <div>订单总额：<span class="price">¥{{ order.totalAmount }}</span></div>
+                <div>实付金额：<span class="price">¥{{ order.payAmount }}</span></div>
+              </div>
+            </div>
+            
+            <div class="order-footer">
+              <el-button v-if="order.status === 0" type="primary" @click="handlePay(order.id)">
+                去支付
+              </el-button>
+              <el-button v-if="order.status === 0" @click="handleCancel(order.id)">
+                取消订单
+              </el-button>
+              <el-button v-if="order.status === 2" type="primary" @click="handleConfirm(order.id)">
+                确认收货
+              </el-button>
+              <el-button @click="viewDetail(order.id)">查看详情</el-button>
             </div>
           </div>
           
-          <div class="order-footer">
-            <el-button v-if="order.status === 0" type="primary" @click="handlePay(order.id)">
-              去支付
-            </el-button>
-            <el-button v-if="order.status === 0" @click="handleCancel(order.id)">
-              取消订单
-            </el-button>
-            <el-button v-if="order.status === 2" type="primary" @click="handleConfirm(order.id)">
-              确认收货
-            </el-button>
-            <el-button @click="viewDetail(order.id)">查看详情</el-button>
+          <div class="pagination">
+            <el-pagination
+              v-model:current-page="pageParams.current"
+              v-model:page-size="pageParams.size"
+              :total="total"
+              layout="total, prev, pager, next"
+              @current-change="loadOrders"
+            />
           </div>
-        </div>
-        
-        <div class="pagination">
-          <el-pagination
-            v-model:current-page="pageParams.current"
-            v-model:page-size="pageParams.size"
-            :total="total"
-            layout="total, prev, pager, next"
-            @current-change="loadOrders"
-          />
         </div>
       </div>
     </div>
+    
+    <AppFooter />
   </div>
 </template>
 
@@ -69,6 +75,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserOrderPage, cancelOrder, payOrder, confirmOrder } from '@/api/order'
 import { useUserStore } from '@/stores/user'
+import AppHeader from '@/components/AppHeader.vue'
+import AppFooter from '@/components/AppFooter.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -204,16 +212,42 @@ const formatTime = (time) => {
 </script>
 
 <style scoped>
+.orders-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
 .orders-page {
-  max-width: 1400px;
+  max-width: 1600px;
+  width: 100%;
   margin: 0 auto;
-  padding: 20px;
-  background: white;
+  padding: 40px 80px;
   min-height: calc(100vh - 120px);
+  flex: 1;
 }
 
 .orders-page h2 {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.orders-page :deep(.el-tabs) {
+  margin-bottom: 30px;
+}
+
+.orders-page :deep(.el-tabs__nav-wrap) {
+  padding: 0;
+}
+
+.orders-page :deep(.el-tabs__item) {
+  font-size: 16px;
+  padding: 0 30px;
+  height: 50px;
+  line-height: 50px;
 }
 
 .orders-list {
@@ -221,58 +255,175 @@ const formatTime = (time) => {
 }
 
 .order-item {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  margin-bottom: 24px;
   overflow: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.order-item:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: #f5f5f5;
+  padding: 20px 30px;
+  background: linear-gradient(to right, #fafafa, #fff);
   border-bottom: 1px solid #eee;
+}
+
+.order-header span:first-child {
+  font-size: 15px;
+  color: #666;
+  font-weight: 500;
+}
+
+.order-header span:nth-child(2) {
+  font-size: 14px;
+  color: #999;
 }
 
 .order-body {
   display: flex;
   justify-content: space-between;
-  padding: 20px;
+  align-items: flex-start;
+  padding: 30px;
+  gap: 40px;
+}
+
+.order-info {
+  flex: 1;
 }
 
 .order-info p {
-  margin-bottom: 8px;
-  color: #666;
+  margin-bottom: 12px;
+  color: #555;
+  font-size: 15px;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+}
+
+.order-info p::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: #FF9A9E;
+  border-radius: 50%;
+  margin-right: 12px;
 }
 
 .order-amount {
   text-align: right;
+  min-width: 200px;
 }
 
 .order-amount > div {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #666;
 }
 
 .price {
-  color: #f56c6c;
-  font-weight: bold;
-  font-size: 18px;
+  color: #ff4d4f;
+  font-weight: 600;
+  font-size: 20px;
+  margin-left: 8px;
 }
 
 .order-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 15px 20px;
+  gap: 12px;
+  padding: 20px 30px;
   background: #fafafa;
   border-top: 1px solid #eee;
+}
+
+.order-footer :deep(.el-button) {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.order-footer :deep(.el-button--primary) {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border: none;
+}
+
+.order-footer :deep(.el-button--primary:hover) {
+  background: linear-gradient(135deg, #FF7B7F 0%, #FFB8D8 100%);
+  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.4);
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  margin-top: 40px;
+  padding-bottom: 20px;
+}
+
+.pagination :deep(.el-pagination) {
+  gap: 8px;
+}
+
+.pagination :deep(.el-pager li) {
+  border-radius: 8px;
+  min-width: 36px;
+  height: 36px;
+  line-height: 36px;
+}
+
+.pagination :deep(.el-pager li.is-active) {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  color: white;
+}
+
+/* 空状态优化 */
+.orders-list :deep(.el-empty) {
+  padding: 80px 0;
+}
+
+.orders-list :deep(.el-empty__description) {
+  font-size: 16px;
+  color: #999;
+}
+
+/* 标签样式优化 */
+:deep(.el-tag) {
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+}
+
+/* 响应式 */
+@media (max-width: 1400px) {
+  .orders-page {
+    padding: 30px 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding: 20px;
+  }
+  
+  .order-body {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .order-amount {
+    text-align: left;
+  }
 }
 </style>

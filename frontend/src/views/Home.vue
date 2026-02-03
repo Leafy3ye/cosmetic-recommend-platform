@@ -1,84 +1,7 @@
 <template>
   <div class="home-page">
     <!-- 顶部导航栏 -->
-    <header class="top-header">
-      <div class="header-container">
-        <!-- 左侧LOGO -->
-        <div class="logo" @click="goHome">
-          <div class="logo-symbol">C</div>
-          <div class="logo-info">
-            <span class="brand-name">Cosmetic</span>
-            <span class="brand-desc">美妆精选</span>
-          </div>
-        </div>
-        
-        <!-- 中间导航 -->
-        <nav class="nav-menu">
-          <a href="/" class="nav-item active">首页</a>
-          <a href="/products" class="nav-item">全部商品</a>
-          <a href="/products?type=new" class="nav-item">新品</a>
-          <a href="/products?type=hot" class="nav-item">热卖</a>
-        </nav>
-        
-        <!-- 右侧操作区 -->
-        <div class="header-actions">
-          <!-- 搜索框 -->
-          <div class="search-wrapper">
-            <el-icon class="search-icon"><Search /></el-icon>
-            <input 
-              type="text" 
-              v-model="searchKeyword"
-              placeholder="搜索商品"
-              class="search-input"
-              @keyup.enter="handleSearch"
-            />
-            <button class="search-btn" @click="handleSearch">
-              搜索
-            </button>
-          </div>
-          
-          <!-- 城市选择 -->
-          <div class="city-select">
-            <el-icon><Location /></el-icon>
-            <span class="city-name">{{ currentCity }}</span>
-          </div>
-          
-          <!-- 购物车 -->
-          <div class="action-item cart-item" @click="goToCart">
-            <el-badge :value="cartCount" :hidden="cartCount === 0" :max="99">
-              <el-icon><ShoppingCart /></el-icon>
-            </el-badge>
-          </div>
-          
-          <!-- 登录/用户 -->
-          <div v-if="!isLogin" class="action-item login-btn" @click="goToLogin">
-            <el-icon><User /></el-icon>
-            <span>登录</span>
-          </div>
-          
-          <el-dropdown v-else @command="handleUserCommand" class="user-dropdown">
-            <div class="action-item user-item">
-              <el-avatar :size="32" :src="userInfo?.avatar" :icon="UserFilled" />
-              <span class="username">{{ userInfo?.nickname || '用户' }}</span>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                <template v-if="userInfo?.role === 1">
-                  <el-dropdown-item command="products">商品管理</el-dropdown-item>
-                  <el-dropdown-item command="merchantOrders">订单管理</el-dropdown-item>
-                </template>
-                <template v-else>
-                  <el-dropdown-item command="orders">我的订单</el-dropdown-item>
-                  <el-dropdown-item command="favorite">我的收藏</el-dropdown-item>
-                </template>
-                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-      </div>
-    </header>
+    <AppHeader active-page="home" />
 
     <!-- 主内容区 -->
     <main class="main-content">
@@ -174,8 +97,8 @@
         </div>
       </section>
 
-      <!-- 为你推荐 -->
-      <section class="recommend-section">
+      <!-- 为你推荐 (只对普通用户显示) -->
+      <section v-if="userInfo && userInfo.role === 0" class="recommend-section">
         <div class="section-header">
           <h2 class="section-title"><el-icon><Discount /></el-icon> 为你推荐</h2>
           <p class="section-subtitle">根据你的浏览记录为你精选</p>
@@ -282,30 +205,25 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  Search, ShoppingCart, UserFilled, ShoppingBag, User, Location,
   Clock, TrendCharts, Star, Sunrise, Discount, 
-  TrophyBase, Picture, ChatDotRound, Position, Share
+  TrophyBase, Picture
 } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { getRecommendProducts, getHotProducts } from '@/api/product'
 import { useUserStore } from '@/stores/user'
-import { initCity } from '@/utils/location'
 import ProductCard from '@/components/ProductCard.vue'
 import SideToolbar from '@/components/SideToolbar.vue'
+import AppHeader from '@/components/AppHeader.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const searchKeyword = ref('')
-const cartCount = ref(0)
 const recommendProducts = ref([])
 const hotProducts = ref([])
 const activityProducts = ref([]) // 活动区块商品
 const loading = ref(false)
 
-const isLogin = computed(() => !!userStore.userInfo)
 const userInfo = computed(() => userStore.userInfo)
-const currentCity = ref('定位中...')
 
 // Banner数据
 const banners = ref([
@@ -331,10 +249,11 @@ const banners = ref([
 
 onMounted(async () => {
   loadActivityProducts()
-  loadRecommendProducts()
+  // 只有普通用户才加载推荐商品
+  if (userInfo.value?.role === 0) {
+    loadRecommendProducts()
+  }
   loadHotProducts()
-  // 初始化城市定位
-  currentCity.value = await initCity()
 })
 
 // 加载活动区块商品（随机4个）
@@ -357,14 +276,19 @@ const loadActivityProducts = async () => {
 }
 
 const loadRecommendProducts = async () => {
+  // 只有普通用户才加载推荐商品
+  if (!userInfo.value || userInfo.value.role !== 0) {
+    return
+  }
+  
   loading.value = true
   try {
-    const userId = userInfo.value?.userId || 1
+    const userId = userInfo.value.userId
     const res = await getRecommendProducts(userId, 12)
     recommendProducts.value = res.data || []
   } catch (error) {
     console.error('加载推荐商品失败：', error)
-    ElMessage.error('加载推荐商品失败')
+    // 不显示错误提示，静默失败
   } finally {
     loading.value = false
   }
@@ -383,14 +307,6 @@ const loadHotProducts = async () => {
   }
 }
 
-const handleSearch = () => {
-  if (searchKeyword.value.trim()) {
-    router.push({ path: '/products', query: { keyword: searchKeyword.value } })
-  } else {
-    router.push('/products')
-  }
-}
-
 const goToDetail = (id) => {
   router.push(`/product/${id}`)
 }
@@ -398,347 +314,12 @@ const goToDetail = (id) => {
 const goToProducts = (type) => {
   router.push({ path: '/products', query: { type } })
 }
-
-const goToCart = () => {
-  if (!isLogin.value) {
-    ElMessage.warning('请先登录')
-    router.push('/login')
-    return
-  }
-  router.push('/cart')
-}
-
-const goToLogin = () => {
-  router.push('/login')
-}
-
-const goToRegister = () => {
-  router.push('/login')
-}
-
-const goHome = () => {
-  window.location.reload()
-}
-
-const handleCityChange = (city) => {
-  currentCity.value = city
-  console.log('当前城市：', city)
-  // TODO: 根据城市筛选商品
-}
-
-const handleUserCommand = (command) => {
-  switch (command) {
-    case 'profile':
-      router.push('/profile')
-      break
-    case 'products':
-      router.push('/merchant/products')
-      break
-    case 'merchantOrders':
-      router.push('/merchant/orders')
-      break
-    case 'orders':
-      router.push('/orders')
-      break
-    case 'favorite':
-      ElMessage.info('收藏功能开发中')
-      break
-    case 'logout':
-      handleLogout()
-      break
-  }
-}
-
-const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    userStore.clearUserInfo()
-    ElMessage.success('已退出登录')
-    router.push('/login')
-  }).catch(() => {})
-}
 </script>
 
 <style scoped>
 .home-page {
   min-height: 100vh;
   background: #f5f7fa;
-}
-
-/* 顶部导航 */
-.top-header {
-  background: #fff;
-  border-bottom: 1px solid #eee;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.header-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 40px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 60px;
-}
-
-/* LOGO */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: opacity 0.3s;
-}
-
-.logo:hover {
-  opacity: 0.8;
-}
-
-.logo-symbol {
-  width: 42px;
-  height: 42px;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: 800;
-  color: white;
-  letter-spacing: -1px;
-}
-
-.logo-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.brand-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
-  letter-spacing: 0.5px;
-}
-
-.brand-desc {
-  font-size: 11px;
-  color: #999;
-  font-weight: 500;
-  letter-spacing: 1px;
-}
-
-/* 导航菜单 */
-.nav-menu {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  flex: 1;
-}
-
-.nav-item {
-  font-size: 15px;
-  color: #333;
-  text-decoration: none;
-  font-weight: 500;
-  position: relative;
-  transition: color 0.3s;
-  padding: 8px 0;
-}
-
-.nav-item::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-  transform: scaleX(0);
-  transition: transform 0.3s;
-}
-
-.nav-item:hover,
-.nav-item.active {
-  color: #FF9A9E;
-}
-
-.nav-item.active::after {
-  transform: scaleX(1);
-}
-
-.nav-item:hover::after {
-  transform: scaleX(1);
-}
-
-/* 右侧操作区 */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-shrink: 0;
-}
-
-/* 搜索框 */
-.search-wrapper {
-  position: relative;
-  width: 380px;
-  display: flex;
-  align-items: center;
-  border: 2px solid #e8e8e8;
-  border-radius: 24px;
-  background: #fff;
-  transition: all 0.3s;
-  overflow: hidden;
-}
-
-.search-wrapper:focus-within {
-  border-color: #FF9A9E;
-  box-shadow: 0 0 0 3px rgba(255, 154, 158, 0.15);
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  font-size: 18px;
-  color: #999;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.search-input {
-  flex: 1;
-  height: 42px;
-  padding: 0 16px 0 44px;
-  border: none;
-  font-size: 14px;
-  outline: none;
-  background: transparent;
-}
-
-.search-input::placeholder {
-  color: #bbb;
-}
-
-.search-btn {
-  height: 42px;
-  padding: 0 32px;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-  color: white;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-}
-
-.search-btn:hover {
-  background: linear-gradient(135deg, #FF7B7F 0%, #FFB8D8 100%);
-  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.4);
-}
-
-.search-btn:active {
-  transform: scale(0.98);
-}
-
-/* 城市选择 */
-.city-select {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: #f8f8f8;
-  border-radius: 20px;
-  font-size: 13px;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-}
-
-.city-select:hover {
-  background: #efefef;
-  color: #FF9A9E;
-}
-
-.city-select .el-icon {
-  font-size: 16px;
-}
-
-.city-name {
-  font-weight: 500;
-}
-
-/* 操作项 */
-.action-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 15px;
-  color: #333;
-  font-weight: 500;
-}
-
-.action-item .el-icon {
-  font-size: 20px;
-}
-
-.action-item:hover {
-  background: #f5f5f5;
-}
-
-/* 购物车 */
-.cart-item {
-  position: relative;
-}
-
-.cart-item :deep(.el-badge__content) {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-  border: none;
-}
-
-/* 登录按钮 */
-.login-btn {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-  color: white;
-}
-
-.login-btn:hover {
-  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.4);
-  transform: translateY(-1px);
-}
-
-/* 用户信息 */
-.user-item {
-  gap: 10px;
-}
-
-.username {
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-dropdown :deep(.el-dropdown-menu) {
-  margin-top: 8px;
 }
 
 /* 主内容 */

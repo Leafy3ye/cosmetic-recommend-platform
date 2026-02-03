@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { getUserInfo } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
   const userInfo = ref(null)
@@ -25,12 +26,26 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('token')
   }
 
+  // 刷新用户信息
+  const refreshUserInfo = async (userId) => {
+    try {
+      const res = await getUserInfo(userId)
+      if (res.code === 200 && res.data) {
+        setUserInfo(res.data)
+      }
+    } catch (error) {
+      console.error('刷新用户信息失败：', error)
+      throw error
+    }
+  }
+
   // 初始化
   initUserInfo()
 
   return {
     userInfo,
     setUserInfo,
-    clearUserInfo
+    clearUserInfo,
+    refreshUserInfo
   }
 })

@@ -1,6 +1,9 @@
 <template>
-  <div class="product-detail" v-loading="loading">
-    <div class="detail-content" v-if="product">
+  <div class="product-detail-container">
+    <AppHeader />
+    
+    <div class="product-detail" v-loading="loading">
+      <div class="detail-content" v-if="product">
       <el-row :gutter="40">
         <el-col :xs="24" :md="12">
           <div class="product-image">
@@ -65,6 +68,9 @@
         <p>{{ product.description || '暂无详细描述' }}</p>
       </div>
     </div>
+    </div>
+    
+    <AppFooter />
   </div>
 </template>
 
@@ -72,10 +78,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ShoppingCart } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProductDetail } from '@/api/product'
 import { addToCart } from '@/api/cart'
 import { useUserStore } from '@/stores/user'
+import AppHeader from '@/components/AppHeader.vue'
+import AppFooter from '@/components/AppFooter.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -113,6 +121,27 @@ const handleAddToCart = async () => {
       return
     }
     
+    // 检查是否为商家账户
+    if (userStore.userInfo?.role === 1) {
+      ElMessageBox.alert(
+        '当前为商家账户！若要购买商品，请切换账户！',
+        '提示',
+        {
+          confirmButtonText: '切换账户',
+          type: 'warning',
+          center: true,
+          callback: () => {
+            // 退出登录并跳转到登录页
+            localStorage.removeItem('token')
+            localStorage.removeItem('userInfo')
+            userStore.clearUserInfo()
+            router.push('/login')
+          }
+        }
+      )
+      return
+    }
+    
     await addToCart({
       userId,
       productId: product.value.id,
@@ -131,24 +160,45 @@ const goBack = () => {
 </script>
 
 <style scoped>
+.product-detail-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
 .product-detail {
-  max-width: 1400px;
+  max-width: 1600px;
+  width: 100%;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 80px;
   background: white;
   min-height: calc(100vh - 120px);
+  flex: 1;
+}
+
+.detail-content {
+  margin-top: 20px;
 }
 
 .product-image {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
-  background: #f5f5f5;
+  background: #f8f9fa;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.product-image:hover {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .product-image img {
   width: 100%;
   height: auto;
+  display: block;
 }
 
 .product-info {
@@ -156,37 +206,45 @@ const goBack = () => {
 }
 
 .product-name {
-  font-size: 28px;
-  color: #333;
-  margin-bottom: 15px;
+  font-size: 32px;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .product-brand {
   font-size: 16px;
-  color: #666;
-  margin-bottom: 20px;
+  color: #888;
+  margin-bottom: 24px;
 }
 
 .product-price-box {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff3f3;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #ffe0e0;
 }
 
 .price-item {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 12px;
+}
+
+.price-item .label {
+  font-size: 16px;
+  color: #666;
 }
 
 .price {
-  font-size: 32px;
-  color: #f56c6c;
-  font-weight: bold;
+  font-size: 36px;
+  color: #ff4d4f;
+  font-weight: 700;
 }
 
 .original-price {
@@ -197,56 +255,125 @@ const goBack = () => {
 
 .sales-info {
   color: #999;
+  font-size: 15px;
 }
 
 .product-attrs {
-  margin: 20px 0;
+  margin: 24px 0;
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 12px;
 }
 
 .attr-item {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.attr-item:last-child {
+  margin-bottom: 0;
 }
 
 .attr-item .label {
   color: #666;
-  margin-right: 10px;
+  margin-right: 12px;
+  min-width: 90px;
+  font-weight: 500;
+}
+
+.attr-item span:not(.label) {
+  color: #333;
 }
 
 .quantity-box {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin: 30px 0;
+  gap: 16px;
+  margin: 32px 0;
 }
 
 .quantity-box .label {
   font-size: 16px;
   color: #666;
+  font-weight: 500;
+}
+
+.quantity-box :deep(.el-input-number) {
+  width: 150px;
 }
 
 .action-buttons {
   display: flex;
-  gap: 15px;
-  margin-top: 30px;
+  gap: 16px;
+  margin-top: 32px;
 }
 
-.action-buttons .el-button {
+.action-buttons :deep(.el-button) {
   flex: 1;
+  height: 50px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 12px;
+}
+
+.action-buttons :deep(.el-button--primary) {
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border: none;
+}
+
+.action-buttons :deep(.el-button--primary:hover) {
+  background: linear-gradient(135deg, #FF7B7F 0%, #FFB8D8 100%);
+  box-shadow: 0 4px 16px rgba(255, 154, 158, 0.4);
+  transform: translateY(-2px);
 }
 
 .product-description {
-  padding: 20px 0;
+  padding: 40px 0;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
 }
 
 .product-description h3 {
-  font-size: 20px;
-  margin-bottom: 20px;
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .product-description p {
   font-size: 16px;
-  line-height: 1.8;
-  color: #666;
+  line-height: 2;
+  color: #555;
+}
+
+/* 响应式 */
+@media (max-width: 1400px) {
+  .product-detail {
+    padding: 30px 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-detail {
+    padding: 20px;
+  }
+  
+  .product-name {
+    font-size: 24px;
+  }
+  
+  .price {
+    font-size: 28px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-buttons :deep(.el-button) {
+    width: 100%;
+  }
 }
 </style>

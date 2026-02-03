@@ -1,6 +1,7 @@
 package com.cosmetic.service;
 
 import com.cosmetic.entity.Cart;
+import com.cosmetic.vo.CartVO;
 import java.util.List;
 
 /**
@@ -32,6 +33,11 @@ public interface CartService {
      * 获取用户购物车列表
      */
     List<Cart> getCartList(Long userId);
+
+    /**
+     * 获取用户购物车列表（包含商品信息）
+     */
+    List<CartVO> getCartListWithProduct(Long userId);
 
     /**
      * 切换选中状态

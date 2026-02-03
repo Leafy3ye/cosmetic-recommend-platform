@@ -6,8 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.Statement;
 
 /**
  * 数据库初始化器 - 自动创建数据库和表
@@ -27,6 +25,10 @@ public class DatabaseInitializer implements CommandLineRunner {
         createDatabase();
         // 创建表
         createTables();
+        // 更新表结构（添加新字段）
+        alterTables();
+        // 初始化商品数据的商家ID
+        initProductMerchantId();
     }
 
     /**
@@ -60,6 +62,13 @@ public class DatabaseInitializer implements CommandLineRunner {
                     "gender INT DEFAULT 0 COMMENT '性别：0-未知，1-男，2-女'," +
                     "role INT DEFAULT 0 COMMENT '角色：0-用户，1-商家，2-管理员'," +
                     "status INT DEFAULT 0 COMMENT '状态：0-正常，1-禁用'," +
+                    "receiver_name VARCHAR(50) COMMENT '收货人姓名'," +
+                    "receiver_phone VARCHAR(20) COMMENT '收货人电话'," +
+                    "province VARCHAR(50) COMMENT '省份'," +
+                    "city VARCHAR(50) COMMENT '城市'," +
+                    "district VARCHAR(50) COMMENT '区/县'," +
+                    "detail_address VARCHAR(500) COMMENT '详细地址'," +
+                    "is_default INT DEFAULT 0 COMMENT '是否默认地址：0-否，1-是'," +
                     "create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'," +
                     "update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'," +
                     "deleted INT DEFAULT 0 COMMENT '逻辑删除'," +
@@ -204,6 +213,113 @@ public class DatabaseInitializer implements CommandLineRunner {
             System.out.println("数据库表创建/检查成功");
         } catch (Exception e) {
             System.err.println("数据库表创建失败：" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 更新表结构 - 添加新字段
+     */
+    private void alterTables() {
+        try {
+            // 检查并添加用户表的地址字段
+            addColumnIfNotExists("tb_user", "receiver_name", 
+                "VARCHAR(50) COMMENT '收货人姓名'");
+            addColumnIfNotExists("tb_user", "receiver_phone", 
+                "VARCHAR(20) COMMENT '收货人电话'");
+            addColumnIfNotExists("tb_user", "province", 
+                "VARCHAR(50) COMMENT '省份'");
+            addColumnIfNotExists("tb_user", "city", 
+                "VARCHAR(50) COMMENT '城市'");
+            addColumnIfNotExists("tb_user", "district", 
+                "VARCHAR(50) COMMENT '区/县'");
+            addColumnIfNotExists("tb_user", "detail_address", 
+                "VARCHAR(500) COMMENT '详细地址'");
+            addColumnIfNotExists("tb_user", "is_default", 
+                "INT DEFAULT 0 COMMENT '是否默认地址：0-否，1-是'");
+            
+            // 修改 avatar 字段类型以支持 base64 图片存储
+            modifyColumnType("tb_user", "avatar", "LONGTEXT COMMENT '头像'");
+            
+            System.out.println("数据库表结构更新成功");
+        } catch (Exception e) {
+            System.err.println("数据库表结构更新失败：" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 添加列（如果不存在）
+     */
+    private void addColumnIfNotExists(String tableName, String columnName, String columnDefinition) {
+        try {
+            // 检查列是否存在
+            String checkSql = "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?";
+            Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, tableName, columnName);
+            
+            if (count == null || count == 0) {
+                // 列不存在，添加列
+                String alterSql = String.format("ALTER TABLE %s ADD COLUMN %s %s", 
+                    tableName, columnName, columnDefinition);
+                jdbcTemplate.execute(alterSql);
+                System.out.println("添加列: " + tableName + "." + columnName);
+            }
+        } catch (Exception e) {
+            System.err.println("添加列失败 " + tableName + "." + columnName + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * 修改列类型
+     */
+    private void modifyColumnType(String tableName, String columnName, String columnDefinition) {
+        try {
+            // 检查列是否存在
+            String checkSql = "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?";
+            Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, tableName, columnName);
+            
+            if (count != null && count > 0) {
+                // 列存在，修改列类型
+                String alterSql = String.format("ALTER TABLE %s MODIFY COLUMN %s %s", 
+                    tableName, columnName, columnDefinition);
+                jdbcTemplate.execute(alterSql);
+                System.out.println("修改列类型: " + tableName + "." + columnName);
+            }
+        } catch (Exception e) {
+            System.err.println("修改列类型失败 " + tableName + "." + columnName + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * 初始化商品的商家ID
+     * 将所有没有merchant_id或merchant_id为NULL的商品关联到商家测试用户
+     */
+    private void initProductMerchantId() {
+        try {
+            // 查找商家测试用户(角色为1的用户)
+            String findMerchantSql = "SELECT id FROM tb_user WHERE role = 1 AND deleted = 0 LIMIT 1";
+            Long merchantId = null;
+            
+            try {
+                merchantId = jdbcTemplate.queryForObject(findMerchantSql, Long.class);
+            } catch (Exception e) {
+                System.out.println("未找到商家用户,跳过商品merchant_id初始化");
+                return;
+            }
+            
+            if (merchantId != null) {
+                // 更新所有没有merchant_id的商品
+                String updateSql = "UPDATE tb_product SET merchant_id = ? WHERE merchant_id IS NULL OR merchant_id = 0";
+                int updatedCount = jdbcTemplate.update(updateSql, merchantId);
+                
+                if (updatedCount > 0) {
+                    System.out.println("已将 " + updatedCount + " 个商品关联到商家(ID: " + merchantId + ")");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("初始化商品merchant_id失败: " + e.getMessage());
             e.printStackTrace();
         }
     }

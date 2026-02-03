@@ -143,16 +143,6 @@
                     </el-icon>
                   </div>
                 </el-form-item>
-                <el-form-item prop="nickname">
-                  <div class="input-wrapper">
-                    <el-icon class="input-icon"><UserFilled /></el-icon>
-                    <input 
-                      v-model="registerForm.nickname" 
-                      placeholder="昵称" 
-                      class="custom-input"
-                    />
-                  </div>
-                </el-form-item>
                 <el-form-item prop="role">
                   <div class="input-wrapper">
                     <el-icon class="input-icon"><Avatar /></el-icon>
@@ -161,6 +151,16 @@
                       <option :value="0">普通用户</option>
                       <option :value="1">商家</option>
                     </select>
+                  </div>
+                </el-form-item>
+                <el-form-item prop="nickname">
+                  <div class="input-wrapper">
+                    <el-icon class="input-icon"><UserFilled /></el-icon>
+                    <input 
+                      v-model="registerForm.nickname" 
+                      :placeholder="registerForm.role === 1 ? '店铺名称' : '昵称'" 
+                      class="custom-input"
+                    />
                   </div>
                 </el-form-item>
                 <el-button 
@@ -297,11 +297,21 @@ const registerRules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '密码长度必须为6-20位', trigger: 'blur' }
   ],
-  nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' }
-  ],
   role: [
     { required: true, message: '请选择角色', trigger: 'change' }
+  ],
+  nickname: [
+    { 
+      required: true, 
+      validator: (rule, value, callback) => {
+        if (!value) {
+          callback(new Error(registerForm.role === 1 ? '请输入店铺名称' : '请输入昵称'))
+        } else {
+          callback()
+        }
+      }, 
+      trigger: 'blur' 
+    }
   ]
 }
 

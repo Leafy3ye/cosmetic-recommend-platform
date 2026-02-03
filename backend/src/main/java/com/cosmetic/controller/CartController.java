@@ -3,6 +3,7 @@ package com.cosmetic.controller;
 import com.cosmetic.common.Result;
 import com.cosmetic.entity.Cart;
 import com.cosmetic.service.CartService;
+import com.cosmetic.vo.CartVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,9 +78,9 @@ public class CartController {
      * 获取用户购物车列表
      */
     @GetMapping("/list/{userId}")
-    public Result<List<Cart>> getCartList(@PathVariable Long userId) {
+    public Result<List<CartVO>> getCartList(@PathVariable Long userId) {
         try {
-            List<Cart> carts = cartService.getCartList(userId);
+            List<CartVO> carts = cartService.getCartListWithProduct(userId);
             return Result.success(carts);
         } catch (Exception e) {
             return Result.error(e.getMessage());
