@@ -129,8 +129,8 @@ cosmetic-recommend-platform/
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/cosmetic_platform
-    username: root
-    password: Yexiajia0422.
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
 ```
 
 2. **启动Redis**（可选）
