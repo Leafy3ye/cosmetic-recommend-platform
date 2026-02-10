@@ -30,12 +30,9 @@ export async function getUserCity() {
   }
 }
 
-/**
- * 备用方案：使用纯真IP库的免费接口
- */
 async function getUserCityFallback() {
   try {
-    // 使用ipapi.co的免费IP定位接口（支持HTTPS和本地开发）
+    // 使用ipapi.co的免费IP定位接口
     const response = await fetch('https://ipapi.co/json/')
     const data = await response.json()
     
