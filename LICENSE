@@ -1,0 +1,93 @@
+Graduate Project Reference License v1.0
+毕业设计参考授权协议 v1.0
+
+Copyright (c) 2026 YE XIAJIA
+All rights reserved.
+
+IMPORTANT NOTICE / 重要声明
+This project is a graduation project deliverable. It is published on GitHub
+for version management, learning reference, and technical communication.
+Commercial use and academic cheating are strictly prohibited.
+
+本项目属于毕业设计成果，上传到 GitHub 的目的仅为版本管理、学习参考与技术交流。
+严格禁止商业使用和学术作弊行为。
+
+----------------------------------------------------------------
+1. Permitted Uses / 允许行为
+----------------------------------------------------------------
+You may, for non-commercial purposes only:
+1) View, download, fork, and run this project for learning and research.
+2) Modify and create derivative works for personal study or classroom practice.
+3) Share source code snippets for discussion with attribution.
+
+在仅限非商业前提下，你可以：
+1) 查看、下载、Fork 并运行本项目用于学习和研究；
+2) 为个人学习或课堂练习进行修改与二次开发；
+3) 在技术讨论中引用代码片段（需注明来源）。
+
+----------------------------------------------------------------
+2. Prohibited Uses / 禁止行为
+----------------------------------------------------------------
+You must NOT:
+1) Use this project or derivatives for any commercial purpose,
+   including but not limited to paid services, productization,
+   enterprise deployment, or profit-generating activities.
+2) Use this project in academic misconduct, including but not limited to:
+   submitting as your own coursework, thesis, project, competition work,
+   or any form of plagiarism/ghostwriting.
+3) Remove, alter, or hide authorship, copyright notice, or this license.
+4) Misrepresent this project as your original independent work.
+
+你不得：
+1) 将本项目及其衍生作品用于任何商业目的，包括但不限于收费服务、
+   产品化、企业部署或任何营利活动；
+2) 将本项目用于学术不端行为，包括但不限于将其冒充为本人作业、
+   论文、课程设计、比赛作品，或任何形式的抄袭、代写、盗用；
+3) 删除、修改或隐藏作者署名、版权声明及本许可协议；
+4) 对外宣称本项目为你独立原创完成。
+
+----------------------------------------------------------------
+3. Attribution Requirements / 署名要求
+----------------------------------------------------------------
+If you reuse any substantial part of this project, you must:
+1) Keep this LICENSE file in your repository/project.
+2) Clearly indicate original author: 叶夏嘉.
+3) Clearly indicate source repository link.
+
+若你复用了本项目的实质性内容，必须：
+1) 在你的仓库/项目中保留本 LICENSE 文件；
+2) 明确标注原作者：叶夏嘉；
+3) 明确标注原始仓库链接。
+
+----------------------------------------------------------------
+4. No Warranty / 免责条款
+----------------------------------------------------------------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+本软件按“现状”提供，不附带任何明示或默示担保，包括但不限于适销性、
+特定用途适用性及不侵权担保。对于因本软件引发的任何索赔、损害或其他责任，
+作者不承担责任。
+
+----------------------------------------------------------------
+5. Violations / 违约处理
+----------------------------------------------------------------
+Any violation of this license automatically terminates your permission to use
+this project. The author reserves the right to pursue legal or platform-level
+actions (including takedown requests) against infringement.
+
+任何违反本协议的行为将自动终止你的使用授权。作者保留采取法律手段或平台
+申诉（包括但不限于下架请求）的权利。
+
+----------------------------------------------------------------
+6. Governing Text / 文本效力
+----------------------------------------------------------------
+This license is provided in both English and Chinese for readability.
+In case of inconsistency, the Chinese version in this file shall prevail.
+
+本协议提供中英文双语版本以便理解。如中英文存在歧义，以本文件中的中文文本
+为准。
+
