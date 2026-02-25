@@ -194,7 +194,7 @@ const handleUserCommand = (command) => {
       router.push('/orders')
       break
     case 'favorite':
-      ElMessage.info('我的收藏功能待开发')
+      router.push('/favorites')
       break
     case 'logout':
       handleLogout()

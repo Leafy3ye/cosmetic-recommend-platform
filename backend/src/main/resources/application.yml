@@ -41,7 +41,8 @@ server:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 关闭MyBatis行级SQL明细输出，避免控制台刷屏
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   global-config:
     db-config:
       id-type: auto
@@ -60,6 +61,8 @@ jwt:
 # 日志配置
 logging:
   level:
-    com.cosmetic: debug
+    com.cosmetic: info
+    org.mybatis: warn
+    com.baomidou: warn
     org.springframework: info
 

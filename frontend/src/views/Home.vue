@@ -314,6 +314,10 @@ const goToDetail = (id) => {
 const goToProducts = (type) => {
   router.push({ path: '/products', query: { type } })
 }
+
+const handleSearch = () => {
+  router.push('/products')
+}
 </script>
 
 <style scoped>

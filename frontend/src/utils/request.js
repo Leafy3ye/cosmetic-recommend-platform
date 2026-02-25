@@ -7,6 +7,25 @@ const request = axios.create({
   timeout: 10000
 })
 
+let handlingAuthExpired = false
+
+const handleAuthExpired = (message = '登录已过期，请重新登录') => {
+  if (handlingAuthExpired) return
+  handlingAuthExpired = true
+
+  ElMessage.error(message)
+  localStorage.removeItem('token')
+  localStorage.removeItem('userInfo')
+
+  // 通知应用层清理内存态，并由路由权限决定是否跳转登录页
+  window.dispatchEvent(new CustomEvent('auth-expired'))
+
+  // 允许后续再次触发过期处理
+  setTimeout(() => {
+    handlingAuthExpired = false
+  }, 1000)
+}
+
 // 请求拦截器
 request.interceptors.request.use(
   config => {
@@ -30,13 +49,11 @@ request.interceptors.response.use(
     
     // 如果返回的状态码不是200，则显示错误信息
     if (res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
-      
-      // 401: Token过期或未登录 - 但不要自动跳转，让路由守卫处理
+      // 401: Token过期或未登录
       if (res.code === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('userInfo')
-        // 移除了自动跳转，让组件或路由守卫决定是否跳转
+        handleAuthExpired(res.message || '登录已过期，请重新登录')
+      } else {
+        ElMessage.error(res.message || '请求失败')
       }
       
       return Promise.reject(new Error(res.message || '请求失败'))
@@ -51,10 +68,7 @@ request.interceptors.response.use(
       const { status } = error.response
       
       if (status === 401) {
-        ElMessage.error('登录已过期，请重新登录')
-        localStorage.removeItem('token')
-        localStorage.removeItem('userInfo')
-        // 移除了自动跳转，让组件或路由守卫决定是否跳转
+        handleAuthExpired('登录已过期，请重新登录')
       } else if (status === 403) {
         ElMessage.error('没有权限访问')
       } else if (status === 404) {

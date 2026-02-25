@@ -18,6 +18,7 @@ public interface CartMapper extends BaseMapper<Cart> {
      * 获取用户购物车列表（包含商品信息）
      */
     @Select("SELECT c.id, c.user_id as userId, c.product_id as productId, " +
+            "p.merchant_id as merchantId, " +
             "p.name as productName, p.image as productImage, p.brand as productBrand, " +
             "p.price, c.quantity, c.checked, c.create_time as createTime " +
             "FROM tb_cart c " +

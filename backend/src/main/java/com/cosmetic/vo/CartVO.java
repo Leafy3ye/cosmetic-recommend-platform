@@ -27,6 +27,11 @@ public class CartVO implements Serializable {
     private Long productId;
 
     /**
+     * 商品所属商家ID
+     */
+    private Long merchantId;
+
+    /**
      * 商品名称
      */
     private String productName;

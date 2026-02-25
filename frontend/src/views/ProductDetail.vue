@@ -55,6 +55,9 @@
               <el-button type="primary" size="large" :icon="ShoppingCart" @click="handleAddToCart">
                 加入购物车
               </el-button>
+              <el-button size="large" @click="toggleFavorite">
+                {{ isFavorite ? '取消收藏' : '收藏商品' }}
+              </el-button>
               <el-button size="large" @click="goBack">返回</el-button>
             </div>
           </div>
@@ -81,6 +84,8 @@ import { ShoppingCart } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProductDetail } from '@/api/product'
 import { addToCart } from '@/api/cart'
+import { addFavorite, removeFavorite, getFavoriteProducts } from '@/api/favorite'
+import { recordBehavior } from '@/api/behavior'
 import { useUserStore } from '@/stores/user'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -93,6 +98,7 @@ const loading = ref(false)
 const product = ref(null)
 const quantity = ref(1)
 const defaultImage = 'https://via.placeholder.com/600x600?text=Product+Image'
+const isFavorite = ref(false)
 
 onMounted(() => {
   loadProductDetail()
@@ -103,6 +109,17 @@ const loadProductDetail = async () => {
     loading.value = true
     const res = await getProductDetail(route.params.id)
     product.value = res.data
+
+    const userId = userStore.userInfo?.userId
+    if (userId && product.value?.id) {
+      // 浏览行为埋点
+      recordBehavior(userId, product.value.id, 1).catch(() => {})
+
+      // 查询收藏状态
+      const favRes = await getFavoriteProducts(userId, 200)
+      const favorites = favRes.data || []
+      isFavorite.value = favorites.some(item => item.id === product.value.id)
+    }
   } catch (error) {
     console.error('加载商品详情失败：', error)
     ElMessage.error('商品不存在')
@@ -147,10 +164,38 @@ const handleAddToCart = async () => {
       productId: product.value.id,
       quantity: quantity.value
     })
-    
+
+    // 加购行为埋点
+    recordBehavior(userId, product.value.id, 3).catch(() => {})
+
     ElMessage.success('已加入购物车')
   } catch (error) {
     console.error('加入购物车失败：', error)
+  }
+}
+
+const toggleFavorite = async () => {
+  const userId = userStore.userInfo?.userId
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  if (!product.value?.id) return
+
+  try {
+    if (isFavorite.value) {
+      await removeFavorite(userId, product.value.id)
+      isFavorite.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await addFavorite(userId, product.value.id)
+      isFavorite.value = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('收藏操作失败：', error)
+    ElMessage.error('收藏操作失败')
   }
 }
 

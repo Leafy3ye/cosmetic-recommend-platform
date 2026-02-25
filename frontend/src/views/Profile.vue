@@ -72,7 +72,7 @@
               <div class="stat-icon">
                 <el-icon :size="32"><Box /></el-icon>
               </div>
-              <span>待发货</span>
+              <span>待收货</span>
             </div>
             <div class="order-stat-item" @click="goToOrders('2')">
               <div class="stat-icon">
@@ -330,6 +330,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getCartList } from '@/api/cart'
 import { getHotProducts } from '@/api/product'
+import { getFavoriteProducts } from '@/api/favorite'
+import { getHistoryProducts } from '@/api/behavior'
 import { uploadAvatar, getMerchantStats } from '@/api/user'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -405,11 +407,26 @@ const loadCartProducts = async () => {
 // 加载推荐商品（用于足迹展示）
 const loadRecommendProducts = async () => {
   try {
-    const res = await getHotProducts(6)
-    const products = res.data || []
-    // 分配给收藏和足迹
-    favoriteProducts.value = products.slice(0, 3)
-    footprintProducts.value = products.slice(3, 6)
+    const userId = userInfo.value?.userId
+    if (!userId) return
+
+    const [favRes, historyRes, fallbackRes] = await Promise.all([
+      getFavoriteProducts(userId, 3),
+      getHistoryProducts(userId, 3),
+      getHotProducts(6)
+    ])
+
+    favoriteProducts.value = favRes.data || []
+    footprintProducts.value = historyRes.data || []
+
+    // 兜底显示，避免页面空白
+    const fallbackProducts = fallbackRes.data || []
+    if (favoriteProducts.value.length === 0) {
+      favoriteProducts.value = fallbackProducts.slice(0, 3)
+    }
+    if (footprintProducts.value.length === 0) {
+      footprintProducts.value = fallbackProducts.slice(3, 6)
+    }
   } catch (error) {
     console.error('加载商品失败：', error)
   }
@@ -529,11 +546,11 @@ const goToOrders = (status) => {
 }
 
 const goToFavorite = () => {
-  ElMessage.info('收藏功能待开发')
+  router.push('/favorites')
 }
 
 const goToFootprint = () => {
-  ElMessage.info('浏览足迹功能待开发')
+  router.push('/footprints')
 }
 
 const goToCart = () => {
@@ -546,11 +563,11 @@ const goToProduct = (id) => {
 
 // 商家相关跳转方法
 const goToMerchantOrders = (status) => {
-  if (status) {
-    ElMessage.info(`查看${status === 'refund' ? '退款/售后' : '订单'}管理功能待开发`)
-  } else {
-    ElMessage.info('订单管理功能待开发')
+  if (status && status !== 'refund') {
+    router.push({ path: '/merchant/orders', query: { status } })
+    return
   }
+  router.push('/merchant/orders')
 }
 
 const goToProductManagement = (tab) => {

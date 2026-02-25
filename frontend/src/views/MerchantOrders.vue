@@ -132,6 +132,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getMerchantOrderPage, deliverOrder } from '@/api/order'
@@ -139,6 +140,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 
 const userStore = useUserStore()
+const route = useRoute()
 const userInfo = computed(() => userStore.userInfo)
 
 const loading = ref(false)
@@ -229,6 +231,12 @@ onMounted(() => {
     ElMessage.error('您没有权限访问该页面')
     return
   }
+
+  const queryStatus = route.query.status
+  if (queryStatus !== undefined) {
+    queryParams.status = parseInt(queryStatus)
+  }
+
   handleQuery()
 })
 </script>

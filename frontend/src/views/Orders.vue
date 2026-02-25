@@ -8,8 +8,8 @@
       <el-tabs v-model="activeTab" @tab-click="handleTabClick">
         <el-tab-pane label="全部" name="all" />
         <el-tab-pane label="待付款" name="0" />
-        <el-tab-pane label="待发货" name="1" />
-        <el-tab-pane label="待收货" name="2" />
+        <el-tab-pane label="待收货" name="1" />
+        <el-tab-pane label="配送中" name="2" />
         <el-tab-pane label="待评价" name="3" />
         <el-tab-pane label="已完成" name="4" />
       </el-tabs>
@@ -71,7 +71,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserOrderPage, cancelOrder, payOrder, confirmOrder } from '@/api/order'
 import { useUserStore } from '@/stores/user'
@@ -79,6 +79,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const activeTab = ref('all')
@@ -93,6 +94,12 @@ const pageParams = reactive({
 })
 
 onMounted(() => {
+  // 支持从个人中心携带订单状态参数跳转
+  const queryStatus = route.query.status
+  if (queryStatus !== undefined) {
+    activeTab.value = String(queryStatus)
+    pageParams.status = queryStatus === 'all' ? null : parseInt(queryStatus)
+  }
   loadOrders()
 })
 
@@ -184,8 +191,8 @@ const viewDetail = (orderId) => {
 const getStatusText = (status) => {
   const statusMap = {
     0: '待付款',
-    1: '待发货',
-    2: '待收货',
+    1: '待收货',
+    2: '配送中',
     3: '待评价',
     4: '已完成',
     5: '已取消'

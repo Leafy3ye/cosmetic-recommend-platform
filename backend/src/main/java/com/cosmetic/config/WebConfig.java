@@ -26,6 +26,8 @@ public class WebConfig implements WebMvcConfigurer {
                             "/product/page",
                             "/product/hot",
                             "/product/*",
+                            "/favorite/user/*",
+                            "/behavior/history/*",
                             "/test/**",
                             "/error"
                     );

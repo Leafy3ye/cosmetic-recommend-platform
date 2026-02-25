@@ -45,6 +45,18 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/favorites',
+    name: 'Favorites',
+    component: () => import('@/views/Favorites.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/footprints',
+    name: 'Footprints',
+    component: () => import('@/views/Footprints.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/address',
     name: 'AddressManagement',
     component: () => import('@/views/AddressManagement.vue'),

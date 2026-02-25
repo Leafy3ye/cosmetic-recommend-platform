@@ -166,6 +166,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Star, Delete } from '@element-plus/icons-vue'
 import { getCartList, updateCartQuantity, deleteCartItem, clearCart } from '@/api/cart'
+import { createOrder } from '@/api/order'
 import { useUserStore } from '@/stores/user'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -352,9 +353,60 @@ const handleCheckout = () => {
     ElMessage.warning('请先选择要结算的商品')
     return
   }
-  
-  ElMessage.info('结算功能待开发')
-  // TODO: 实现结算功能
+
+  const firstItem = selectedItems[0]
+  const receiverName = userStore.userInfo?.receiverName || userStore.userInfo?.nickname || '默认收货人'
+  const receiverPhone = userStore.userInfo?.receiverPhone || userStore.userInfo?.phone || '13800000000'
+  const receiverAddress = [
+    userStore.userInfo?.province,
+    userStore.userInfo?.city,
+    userStore.userInfo?.district,
+    userStore.userInfo?.detailAddress
+  ].filter(Boolean).join(' ')
+
+  const finalAddress = receiverAddress || '默认收货地址'
+  const totalAmount = Number(
+    selectedItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0).toFixed(2)
+  )
+
+  ElMessageBox.confirm(
+    `确认提交订单？共 ${selectedItems.length} 件商品，金额 ¥${totalAmount.toFixed(2)}`,
+    '确认结算',
+    {
+      confirmButtonText: '提交订单',
+      cancelButtonText: '取消',
+      type: 'info'
+    }
+  ).then(async () => {
+    try {
+      const userId = userStore.userInfo?.userId
+      if (!userId) {
+        ElMessage.warning('请先登录')
+        router.push('/login')
+        return
+      }
+
+      await createOrder({
+        userId,
+        merchantId: firstItem.merchantId || null,
+        totalAmount,
+        payAmount: totalAmount,
+        receiverName,
+        receiverPhone,
+        receiverAddress: finalAddress,
+        remark: `购物车结算，共${selectedItems.length}件`
+      })
+
+      // 下单成功后移除本次结算商品
+      await Promise.all(selectedItems.map(item => deleteCartItem(item.id)))
+
+      ElMessage.success('订单创建成功，请前往订单页点击付款')
+      router.push('/orders')
+    } catch (error) {
+      console.error('创建订单失败：', error)
+      ElMessage.error('创建订单失败，请稍后重试')
+    }
+  }).catch(() => {})
 }
 
 const goBack = () => {
