@@ -37,8 +37,7 @@
         
         <!-- 城市选择 -->
         <div class="city-select">
-          <el-icon><Location /></el-icon>
-          <span class="city-name">{{ currentCity }}</span>
+          <CitySelector @change="handleCityChange" />
         </div>
         
         <!-- 购物车 (商家隐藏) -->
@@ -87,11 +86,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Location, ShoppingCart, User, UserFilled } from '@element-plus/icons-vue'
+import { Search, ShoppingCart, User, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getCartList } from '@/api/cart'
-import { initCity } from '@/utils/location'
+import CitySelector from '@/components/CitySelector.vue'
 
 // Props
 defineProps({
@@ -105,20 +104,18 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const searchKeyword = ref('')
-const currentCity = ref('定位中...')
 const cartCount = ref(0)
 
 const userInfo = computed(() => userStore.userInfo)
 const isLogin = computed(() => !!userInfo.value)
 
 onMounted(async () => {
-  // 初始化城市定位
-  currentCity.value = await initCity()
-  
   if (isLogin.value) {
     loadCartCount()
   }
 })
+
+const handleCityChange = () => {}
 
 const loadCartCount = async () => {
   // 商家账户不加载购物车数量
@@ -404,30 +401,7 @@ const handleLogout = () => {
 
 /* 城市选择 */
 .city-select {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: #f8f8f8;
-  border-radius: 20px;
-  font-size: 13px;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-}
-
-.city-select:hover {
-  background: #efefef;
-  color: #FF9A9E;
-}
-
-.city-select .el-icon {
-  font-size: 16px;
-}
-
-.city-name {
-  font-weight: 500;
+  flex-shrink: 0;
 }
 
 /* 操作项 */

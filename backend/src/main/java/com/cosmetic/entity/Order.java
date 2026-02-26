@@ -5,6 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 订单实体类
@@ -103,5 +104,11 @@ public class Order implements Serializable {
      */
     @TableLogic
     private Integer deleted;
+
+    /**
+     * 订单明细列表（非数据库字段）
+     */
+    @TableField(exist = false)
+    private List<OrderItem> items;
 }
 

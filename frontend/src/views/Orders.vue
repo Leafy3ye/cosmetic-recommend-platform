@@ -8,8 +8,8 @@
       <el-tabs v-model="activeTab" @tab-click="handleTabClick">
         <el-tab-pane label="全部" name="all" />
         <el-tab-pane label="待付款" name="0" />
-        <el-tab-pane label="待收货" name="1" />
-        <el-tab-pane label="配送中" name="2" />
+        <el-tab-pane label="待发货" name="1" />
+        <el-tab-pane label="待收货" name="2" />
         <el-tab-pane label="待评价" name="3" />
         <el-tab-pane label="已完成" name="4" />
       </el-tabs>
@@ -26,15 +26,29 @@
             </div>
             
             <div class="order-body">
-              <div class="order-info">
-                <p>收货人：{{ order.receiverName }}</p>
-                <p>电话：{{ order.receiverPhone }}</p>
-                <p>地址：{{ order.receiverAddress }}</p>
+              <!-- 商品明细 -->
+              <div class="order-items" v-if="order.items && order.items.length">
+                <div class="order-item-row" v-for="item in order.items" :key="item.id">
+                  <img :src="item.productImage || defaultImage" :alt="item.productName" class="item-thumb" @error="handleImageError" />
+                  <div class="item-detail">
+                    <span class="item-name">{{ item.productName }}</span>
+                    <span class="item-spec">¥{{ item.price }} × {{ item.quantity }}</span>
+                  </div>
+                  <span class="item-subtotal">¥{{ item.subtotal }}</span>
+                </div>
               </div>
-              
-              <div class="order-amount">
-                <div>订单总额：<span class="price">¥{{ order.totalAmount }}</span></div>
-                <div>实付金额：<span class="price">¥{{ order.payAmount }}</span></div>
+
+              <div class="order-meta">
+                <div class="order-info">
+                  <p>收货人：{{ order.receiverName }}</p>
+                  <p>电话：{{ order.receiverPhone }}</p>
+                  <p>地址：{{ order.receiverAddress }}</p>
+                </div>
+                
+                <div class="order-amount">
+                  <div>订单总额：<span class="price">¥{{ order.totalAmount }}</span></div>
+                  <div>实付金额：<span class="price">¥{{ order.payAmount }}</span></div>
+                </div>
               </div>
             </div>
             
@@ -86,6 +100,7 @@ const activeTab = ref('all')
 const loading = ref(false)
 const orderList = ref([])
 const total = ref(0)
+const defaultImage = 'https://via.placeholder.com/60x60?text=Product'
 
 const pageParams = reactive({
   current: 1,
@@ -122,9 +137,10 @@ const loadOrders = async () => {
   }
 }
 
-const handleTabClick = () => {
+const handleTabClick = (tab) => {
+  const tabName = String(tab?.paneName ?? activeTab.value)
   pageParams.current = 1
-  pageParams.status = activeTab.value === 'all' ? null : parseInt(activeTab.value)
+  pageParams.status = tabName === 'all' ? null : parseInt(tabName)
   loadOrders()
 }
 
@@ -191,8 +207,8 @@ const viewDetail = (orderId) => {
 const getStatusText = (status) => {
   const statusMap = {
     0: '待付款',
-    1: '待收货',
-    2: '配送中',
+    1: '待发货',
+    2: '待收货',
     3: '待评价',
     4: '已完成',
     5: '已取消'
@@ -203,7 +219,7 @@ const getStatusText = (status) => {
 const getStatusType = (status) => {
   const typeMap = {
     0: 'warning',
-    1: 'primary',
+    1: '',
     2: 'primary',
     3: 'success',
     4: 'success',
@@ -215,6 +231,10 @@ const getStatusType = (status) => {
 const formatTime = (time) => {
   if (!time) return ''
   return new Date(time).toLocaleString('zh-CN')
+}
+
+const handleImageError = (e) => {
+  e.target.src = defaultImage
 }
 </script>
 
@@ -297,10 +317,65 @@ const formatTime = (time) => {
 }
 
 .order-body {
+  padding: 0;
+}
+
+.order-items {
+  padding: 20px 30px;
+  border-bottom: 1px dashed #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.item-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.item-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.item-detail .item-name {
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-detail .item-spec {
+  font-size: 13px;
+  color: #999;
+}
+
+.item-subtotal {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ff4d4f;
+  flex-shrink: 0;
+}
+
+.order-meta {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 30px;
+  padding: 20px 30px;
   gap: 40px;
 }
 

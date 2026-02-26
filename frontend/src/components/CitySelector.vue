@@ -58,6 +58,8 @@ const handleCityChange = async (command) => {
     } catch (error) {
       ElMessage.error('定位失败，请手动选择城市')
       currentCity.value = '全国'
+      saveUserCity('全国')
+      emit('change', '全国')
     }
   } else {
     currentCity.value = command
@@ -73,21 +75,30 @@ const handleCityChange = async (command) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
+  padding: 8px 14px;
+  background: #f8f8f8;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s;
-  color: white;
-  font-size: 14px;
+  color: #666;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .city-selector:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #efefef;
+  color: #FF9A9E;
+}
+
+.city-selector .el-icon {
+  font-size: 16px;
 }
 
 .arrow {
   font-size: 12px;
+}
+
+.city-selector span {
+  font-weight: 500;
 }
 </style>

@@ -72,7 +72,7 @@
               <div class="stat-icon">
                 <el-icon :size="32"><Box /></el-icon>
               </div>
-              <span>待收货</span>
+              <span>待发货</span>
             </div>
             <div class="order-stat-item" @click="goToOrders('2')">
               <div class="stat-icon">
@@ -190,7 +190,7 @@
               <div class="stat-icon">
                 <el-icon :size="32"><Van /></el-icon>
               </div>
-              <span>配送中</span>
+              <span>待收货</span>
             </div>
             <div class="order-stat-item" @click="goToMerchantOrders('3')">
               <div class="stat-icon">

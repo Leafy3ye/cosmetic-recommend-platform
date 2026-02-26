@@ -2,6 +2,7 @@ package com.cosmetic.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cosmetic.common.Result;
+import com.cosmetic.dto.OrderCreateRequest;
 import com.cosmetic.entity.Order;
 import com.cosmetic.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,12 @@ public class OrderController {
     private OrderService orderService;
 
     /**
-     * 创建订单
+     * 创建订单（含商品明细）
      */
     @PostMapping("/create")
-    public Result<String> createOrder(@RequestBody Order order) {
+    public Result<String> createOrder(@RequestBody OrderCreateRequest request) {
         try {
-            String orderNo = orderService.createOrder(order);
+            String orderNo = orderService.createOrder(request);
             return Result.success("订单创建成功", orderNo);
         } catch (Exception e) {
             return Result.error(e.getMessage());

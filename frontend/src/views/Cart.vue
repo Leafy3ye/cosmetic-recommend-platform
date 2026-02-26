@@ -5,10 +5,12 @@
     
     <div class="cart-content" v-loading="loading">
       <!-- 空购物车状态 -->
-      <div v-if="!loading && cartList.length === 0" class="empty-cart">
-        <el-empty description="购物车是空的">
-          <el-button type="primary" @click="goBack" class="go-shopping-btn">去逛逛</el-button>
-        </el-empty>
+      <div v-if="!loading && cartList.length === 0" class="cart-container empty-state-container">
+        <div class="empty-cart">
+          <el-empty description="购物车是空的">
+            <el-button type="primary" @click="goBack" class="go-shopping-btn">去逛逛</el-button>
+          </el-empty>
+        </div>
       </div>
       
       <!-- 购物车列表 -->
@@ -167,6 +169,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Star, Delete } from '@element-plus/icons-vue'
 import { getCartList, updateCartQuantity, deleteCartItem, clearCart } from '@/api/cart'
 import { createOrder } from '@/api/order'
+import { getUserAddress } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -355,16 +358,6 @@ const handleCheckout = () => {
   }
 
   const firstItem = selectedItems[0]
-  const receiverName = userStore.userInfo?.receiverName || userStore.userInfo?.nickname || '默认收货人'
-  const receiverPhone = userStore.userInfo?.receiverPhone || userStore.userInfo?.phone || '13800000000'
-  const receiverAddress = [
-    userStore.userInfo?.province,
-    userStore.userInfo?.city,
-    userStore.userInfo?.district,
-    userStore.userInfo?.detailAddress
-  ].filter(Boolean).join(' ')
-
-  const finalAddress = receiverAddress || '默认收货地址'
   const totalAmount = Number(
     selectedItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0).toFixed(2)
   )
@@ -386,6 +379,23 @@ const handleCheckout = () => {
         return
       }
 
+      const addressRes = await getUserAddress(userId)
+      const addressData = addressRes.data || {}
+      const receiverName = addressData.receiverName || userStore.userInfo?.nickname
+      const receiverPhone = addressData.receiverPhone || userStore.userInfo?.phone
+      const finalAddress = [
+        addressData.province,
+        addressData.city,
+        addressData.district,
+        addressData.detailAddress
+      ].filter(Boolean).join(' ')
+
+      if (!receiverName || !receiverPhone || !finalAddress) {
+        ElMessage.warning('请先在地址管理中完善默认收货地址')
+        router.push('/address')
+        return
+      }
+
       await createOrder({
         userId,
         merchantId: firstItem.merchantId || null,
@@ -394,7 +404,14 @@ const handleCheckout = () => {
         receiverName,
         receiverPhone,
         receiverAddress: finalAddress,
-        remark: `购物车结算，共${selectedItems.length}件`
+        remark: `购物车结算，共${selectedItems.length}件`,
+        items: selectedItems.map(item => ({
+          productId: item.productId,
+          productName: item.productName,
+          productImage: item.productImage,
+          price: Number(item.price),
+          quantity: item.quantity
+        }))
       })
 
       // 下单成功后移除本次结算商品
@@ -449,11 +466,20 @@ const handleImageError = (e) => {
 
 /* 空购物车 */
 .empty-cart {
-  background: white;
-  border-radius: 12px;
-  padding: 60px 20px;
-  text-align: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  min-height: 420px;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-cart :deep(.el-empty) {
+  width: 100%;
+}
+
+.empty-state-container {
+  padding: 0;
 }
 
 .go-shopping-btn {

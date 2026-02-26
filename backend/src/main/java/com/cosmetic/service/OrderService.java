@@ -1,6 +1,7 @@
 package com.cosmetic.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.cosmetic.dto.OrderCreateRequest;
 import com.cosmetic.entity.Order;
 
 /**
@@ -9,9 +10,9 @@ import com.cosmetic.entity.Order;
 public interface OrderService {
 
     /**
-     * 创建订单
+     * 创建订单（含明细）
      */
-    String createOrder(Order order);
+    String createOrder(OrderCreateRequest request);
 
     /**
      * 取消订单
@@ -19,7 +20,7 @@ public interface OrderService {
     void cancelOrder(Long orderId);
 
     /**
-     * 支付订单
+     * 支付订单（幂等：记录购买行为 + 累加销量）
      */
     void payOrder(Long orderId, Integer payType);
 
@@ -34,7 +35,7 @@ public interface OrderService {
     void confirmOrder(Long orderId);
 
     /**
-     * 根据ID获取订单
+     * 根据ID获取订单（含明细）
      */
     Order getOrderById(Long id);
 
