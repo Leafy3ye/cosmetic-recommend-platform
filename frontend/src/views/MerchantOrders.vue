@@ -4,7 +4,10 @@
     
     <div class="merchant-orders-page">
       <div class="page-header">
-      <h2>订单管理</h2>
+      <div class="header-left">
+        <el-button class="back-btn" @click="$router.push('/profile')" :icon="ArrowLeft" round>返回个人中心</el-button>
+        <h2>订单管理</h2>
+      </div>
     </div>
 
     <el-card class="filter-card">
@@ -134,6 +137,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getMerchantOrderPage, deliverOrder } from '@/api/order'
 import AppHeader from '@/components/AppHeader.vue'
@@ -263,6 +267,27 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-btn {
+  color: #FF9A9E;
+  border: 1px solid #FFD4D7;
+  background: white;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.back-btn:hover {
+  color: white;
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+  border-color: #FF9A9E;
+  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.3);
 }
 
 .page-header h2 {

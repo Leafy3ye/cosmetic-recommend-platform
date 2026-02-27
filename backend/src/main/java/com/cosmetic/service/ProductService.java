@@ -32,8 +32,9 @@ public interface ProductService {
 
     /**
      * 分页查询商品
+     * @param type null/all=全部, hot=热卖(按销量降序,销量>0), new=新品(按上架时间降序)
      */
-    Page<Product> getProductPage(Integer current, Integer size, String keyword, Long categoryId);
+    Page<Product> getProductPage(Integer current, Integer size, String keyword, Long categoryId, String type);
 
     /**
      * 获取热销商品

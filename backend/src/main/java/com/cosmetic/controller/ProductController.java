@@ -79,9 +79,10 @@ public class ProductController {
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long categoryId) {
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String type) {
         try {
-            Page<Product> page = productService.getProductPage(current, size, keyword, categoryId);
+            Page<Product> page = productService.getProductPage(current, size, keyword, categoryId, type);
             return Result.success(page);
         } catch (Exception e) {
             return Result.error(e.getMessage());

@@ -45,12 +45,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<Product> getProductPage(Integer current, Integer size, String keyword, Long categoryId) {
+    public Page<Product> getProductPage(Integer current, Integer size, String keyword, Long categoryId, String type) {
         Page<Product> page = new Page<>(current, size);
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
         
         // 只查询上架的商品
         wrapper.eq(Product::getStatus, 1);
+        
+        // 热卖：仅展示销量 > 0 的商品
+        if ("hot".equals(type)) {
+            wrapper.gt(Product::getSales, 0);
+        }
         
         // 关键词搜索
         if (keyword != null && !keyword.isEmpty()) {
@@ -64,7 +69,15 @@ public class ProductServiceImpl implements ProductService {
             wrapper.eq(Product::getCategoryId, categoryId);
         }
         
-        wrapper.orderByDesc(Product::getCreateTime);
+        // 排序：热卖按销量降序，新品按上架时间降序（最新在前）
+        if ("hot".equals(type)) {
+            wrapper.orderByDesc(Product::getSales);
+        } else if ("new".equals(type)) {
+            wrapper.orderByDesc(Product::getCreateTime);
+        } else {
+            wrapper.orderByDesc(Product::getCreateTime);
+        }
+        
         return productMapper.selectPage(page, wrapper);
     }
 

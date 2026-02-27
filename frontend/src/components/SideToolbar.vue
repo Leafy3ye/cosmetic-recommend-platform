@@ -30,8 +30,8 @@
       <span>客户</span>
     </div>
 
-    <!-- 历史 -->
-    <div class="tool-item" @click="handleHistory">
+    <!-- 历史 (商家隐藏) -->
+    <div v-if="!isMerchant" class="tool-item" @click="handleHistory">
       <el-icon><Clock /></el-icon>
       <span>历史</span>
     </div>

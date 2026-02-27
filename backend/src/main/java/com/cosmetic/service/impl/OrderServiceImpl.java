@@ -89,6 +89,12 @@ public class OrderServiceImpl implements OrderService {
                 throw new BusinessException("商品不存在: productId=" + dto.getProductId());
             }
 
+            // 扣减库存（stock >= quantity 才能成功，原子操作）
+            int deducted = productMapper.decrementStock(dto.getProductId(), dto.getQuantity());
+            if (deducted == 0) {
+                throw new BusinessException("商品 [" + product.getName() + "] 库存不足");
+            }
+
             OrderItem item = new OrderItem();
             item.setOrderId(orderId);
             item.setProductId(dto.getProductId());
@@ -105,6 +111,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Long orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null) {
@@ -115,6 +122,12 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(5); // 已取消
         orderMapper.updateById(order);
+
+        // 恢复库存
+        List<OrderItem> items = orderItemMapper.selectByOrderId(orderId);
+        for (OrderItem item : items) {
+            productMapper.restoreStock(item.getProductId(), item.getQuantity());
+        }
     }
 
     /**

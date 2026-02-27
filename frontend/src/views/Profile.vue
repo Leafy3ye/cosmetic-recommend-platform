@@ -59,31 +59,39 @@
               <el-icon><ShoppingBag /></el-icon>
               我的订单
             </h3>
-            <el-button text @click="goToOrders">查看全部 ></el-button>
+            <el-button text @click="goToOrders()">查看全部 ></el-button>
           </div>
           <div class="order-stats">
             <div class="order-stat-item" @click="goToOrders('0')">
-              <div class="stat-icon">
-                <el-icon :size="32"><WalletFilled /></el-icon>
-              </div>
+              <el-badge :value="orderStats.unpaid" :hidden="!orderStats.unpaid" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><WalletFilled /></el-icon>
+                </div>
+              </el-badge>
               <span>待付款</span>
             </div>
             <div class="order-stat-item" @click="goToOrders('1')">
-              <div class="stat-icon">
-                <el-icon :size="32"><Box /></el-icon>
-              </div>
+              <el-badge :value="orderStats.unshipped" :hidden="!orderStats.unshipped" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><Box /></el-icon>
+                </div>
+              </el-badge>
               <span>待发货</span>
             </div>
             <div class="order-stat-item" @click="goToOrders('2')">
-              <div class="stat-icon">
-                <el-icon :size="32"><Van /></el-icon>
-              </div>
+              <el-badge :value="orderStats.shipped" :hidden="!orderStats.shipped" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><Van /></el-icon>
+                </div>
+              </el-badge>
               <span>待收货</span>
             </div>
             <div class="order-stat-item" @click="goToOrders('3')">
-              <div class="stat-icon">
-                <el-icon :size="32"><ChatDotRound /></el-icon>
-              </div>
+              <el-badge :value="orderStats.toReview" :hidden="!orderStats.toReview" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><ChatDotRound /></el-icon>
+                </div>
+              </el-badge>
               <span>待评价</span>
             </div>
             <div class="order-stat-item" @click="goToOrders('all')">
@@ -177,25 +185,31 @@
               <el-icon><ShoppingBag /></el-icon>
               订单管理
             </h3>
-            <el-button text @click="goToMerchantOrders">查看全部 ></el-button>
+            <el-button text @click="goToMerchantOrders()">查看全部 ></el-button>
           </div>
           <div class="order-stats">
             <div class="order-stat-item" @click="goToMerchantOrders('1')">
-              <div class="stat-icon">
-                <el-icon :size="32"><Box /></el-icon>
-              </div>
+              <el-badge :value="merchantOrderStats.toShipCount" :hidden="!merchantOrderStats.toShipCount" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><Box /></el-icon>
+                </div>
+              </el-badge>
               <span>待发货</span>
             </div>
             <div class="order-stat-item" @click="goToMerchantOrders('2')">
-              <div class="stat-icon">
-                <el-icon :size="32"><Van /></el-icon>
-              </div>
+              <el-badge :value="merchantOrderStats.shippedCount" :hidden="!merchantOrderStats.shippedCount" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><Van /></el-icon>
+                </div>
+              </el-badge>
               <span>待收货</span>
             </div>
             <div class="order-stat-item" @click="goToMerchantOrders('3')">
-              <div class="stat-icon">
-                <el-icon :size="32"><Select /></el-icon>
-              </div>
+              <el-badge :value="merchantOrderStats.completedCount" :hidden="!merchantOrderStats.completedCount" :max="99">
+                <div class="stat-icon">
+                  <el-icon :size="32"><Select /></el-icon>
+                </div>
+              </el-badge>
               <span>已完成</span>
             </div>
             <div class="order-stat-item" @click="goToMerchantOrders('refund')">
@@ -333,6 +347,7 @@ import { getHotProducts } from '@/api/product'
 import { getFavoriteProducts } from '@/api/favorite'
 import { getHistoryProducts } from '@/api/behavior'
 import { uploadAvatar, getMerchantStats } from '@/api/user'
+import { getUserOrderPage, getMerchantOrderPage } from '@/api/order'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 
@@ -345,13 +360,12 @@ const defaultImage = 'https://via.placeholder.com/120x120?text=Product'
 // 头像上传input引用
 const avatarInput = ref(null)
 
-// 订单统计
+// 订单统计（各状态数量）
 const orderStats = ref({
-  unpaid: 1,
-  unshipped: 1,
-  shipped: 2,
-  completed: 3,
-  refund: 0
+  unpaid: 0,     // 待付款(0)
+  unshipped: 0,  // 待发货(1)
+  shipped: 0,    // 待收货(2)
+  toReview: 0    // 待评价(3)
 })
 
 // 收藏商品列表（示例数据，实际应从API获取）
@@ -362,6 +376,14 @@ const footprintProducts = ref([])
 
 // 购物车商品列表
 const cartProducts = ref([])
+
+// 商家订单统计（各状态数量）
+const merchantOrderStats = ref({
+  toShipCount: 0,      // 待发货(1)
+  shippedCount: 0,     // 待收货(2)
+  completedCount: 0,   // 新增已完成（未查看的）
+  _totalCompleted: 0   // 已完成总数（用于持久化）
+})
 
 // 商家统计数据
 const merchantStats = ref({
@@ -381,14 +403,56 @@ const statsLoading = ref(false)
 
 onMounted(async () => {
   if (userInfo.value?.role === 0) {
-    // 普通用户加载购物车和推荐商品
+    loadOrderStats()
     await loadCartProducts()
     await loadRecommendProducts()
   } else if (userInfo.value?.role === 1) {
-    // 商家加载商家统计数据
+    loadMerchantOrderStats()
     await loadMerchantStats()
   }
 })
+
+// 加载各状态订单数量（一次查全部，前端计数）
+const loadOrderStats = async () => {
+  try {
+    const userId = userInfo.value?.userId
+    if (!userId) return
+    const res = await getUserOrderPage(userId, { current: 1, size: 200 })
+    const orders = res.data?.records || []
+    orderStats.value = {
+      unpaid: orders.filter(o => o.status === 0).length,
+      unshipped: orders.filter(o => o.status === 1).length,
+      shipped: orders.filter(o => o.status === 2).length,
+      toReview: orders.filter(o => o.status === 3).length
+    }
+  } catch (error) {
+    console.error('加载订单统计失败：', error)
+  }
+}
+
+// 加载商家各状态订单数量
+const loadMerchantOrderStats = async () => {
+  try {
+    const merchantId = userInfo.value?.userId
+    if (!merchantId) return
+    const res = await getMerchantOrderPage({ merchantId, current: 1, size: 200 })
+    const orders = res.data?.records || []
+
+    const totalCompleted = orders.filter(o => o.status === 3 || o.status === 4).length
+    const seenKey = `merchant_seen_completed_${merchantId}`
+    const seenCount = parseInt(localStorage.getItem(seenKey) || '0', 10)
+    const newCompleted = Math.max(0, totalCompleted - seenCount)
+
+    merchantOrderStats.value = {
+      toShipCount: orders.filter(o => o.status === 1).length,
+      shippedCount: orders.filter(o => o.status === 2).length,
+      completedCount: newCompleted,
+      _totalCompleted: totalCompleted
+    }
+  } catch (error) {
+    console.error('加载商家订单统计失败：', error)
+  }
+}
 
 // 加载购物车商品
 const loadCartProducts = async () => {
@@ -563,6 +627,14 @@ const goToProduct = (id) => {
 
 // 商家相关跳转方法
 const goToMerchantOrders = (status) => {
+  if (status === '3') {
+    const merchantId = userInfo.value?.userId
+    if (merchantId) {
+      const seenKey = `merchant_seen_completed_${merchantId}`
+      localStorage.setItem(seenKey, String(merchantOrderStats.value._totalCompleted || 0))
+    }
+    merchantOrderStats.value.completedCount = 0
+  }
   if (status && status !== 'refund') {
     router.push({ path: '/merchant/orders', query: { status } })
     return
@@ -827,6 +899,11 @@ const handleLogout = () => {
   justify-content: center;
   color: #FF9A9E;
   position: relative;
+}
+
+.order-stat-item :deep(.el-badge__content) {
+  border: none;
+  box-shadow: 0 2px 6px rgba(245, 108, 108, 0.4);
 }
 
 .order-stat-item span {
